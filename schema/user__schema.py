@@ -25,7 +25,7 @@ class UserCreateSchema(BaseModel):
     email: str
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "name": "John",
                 "lastname": "Doe",
@@ -42,7 +42,7 @@ class UserUpdateSchema(BaseModel):
     email: Optional[str]
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "name": "John",
                 "lastname": "Doe",

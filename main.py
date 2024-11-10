@@ -1,12 +1,19 @@
 # Importamos FastAPI y HTTPException de la librería fastapi
-from fastapi import FastAPI, HTTPException, logger, Response
+from fastapi import Depends, FastAPI, HTTPException, logger, Response, status
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_200_OK, HTTP_201_CREATED
+
+from auth.auth_routes import router as auth_router
 
 # Importamos la clase UserConnection desde el módulo models.user_connection
 from models.user_connection import UserConnection
 
 # Importamos el esquema de usuario desde el módulo schema.user_schema
-from schema.user__schema import UserCreateSchema, UserSchema, UserUpdateSchema  
+from schema.user__schema import UserCreateSchema, UserUpdateSchema  
+
+from auth.auth import (
+  get_current_active_user
+)
+
 
 # Creamos una instancia de la aplicación FastAPI
 app = FastAPI()
@@ -14,11 +21,14 @@ app = FastAPI()
 # Creamos una instancia de la conexión de usuario
 conn = UserConnection()
 
+# Incluye las rutas de autenticación
+app.include_router(auth_router)
+
+
 # Definimos una ruta GET en la raíz ("/")
-@app.get("/", status_code=HTTP_200_OK)  
-def root():
+@app.get("/", dependencies=[Depends(get_current_active_user)], status_code=HTTP_200_OK)
+async def root():
     try:
-        # Intentamos leer todos los datos de la conexión
         data = conn.read_all()
         items = []
         for data in conn.read_all():
@@ -31,14 +41,11 @@ def root():
             items.append(dictionary)
         return items
     except Exception as e:
-        # Si ocurre una excepción, la registramos y lanzamos una HTTPException con código 500 y el detalle del error
         logger.error(f"Error al leer los datos: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-      #return {"message": "Bienvenido a la API de FastAPI"}
-
 
 # Definimos una ruta GET en "/api/user/id" para obtener datos de usuario por ID
-@app.get("/api/user/{id}", summary="Get User by ID", status_code=HTTP_200_OK)
+@app.get("/api/user/{id}", summary="Get User by ID", dependencies=[Depends(get_current_active_user)], status_code=HTTP_200_OK)
 def get_one(id: str):
     try:
         # Intentamos leer los datos del usuario con el ID proporcionado
@@ -64,9 +71,8 @@ def get_one(id: str):
         # Si ocurre una excepción, lanzamos una HTTPException con código 500 y el detalle del error
         raise HTTPException(status_code=500, detail=str(e))
 
-
 # Definimos una ruta POST en "/api/insert" para insertar datos de usuario
-@app.post("/api/insert" , summary="Insert User", status_code=HTTP_201_CREATED)
+@app.post("/api/insert" , summary="Insert User", dependencies=[Depends(get_current_active_user)], status_code=HTTP_201_CREATED)
 def insert(user_data: UserCreateSchema):
     try:
         data = user_data.model_dump()
@@ -80,7 +86,7 @@ def insert(user_data: UserCreateSchema):
 
 
 # Definimos la ruta PUT en "/api/update/id" para actualizar datos de usuario por ID
-@app.put("/api/update/{id}", summary="Update User by ID", status_code=HTTP_204_NO_CONTENT)
+@app.put("/api/update/{id}", summary="Update User by ID", dependencies=[Depends(get_current_active_user)], status_code=HTTP_204_NO_CONTENT)
 def update(id: str, user_data: UserUpdateSchema):
     try:
         data = user_data.model_dump()
@@ -97,7 +103,7 @@ def update(id: str, user_data: UserUpdateSchema):
 
 
 # Definimos una ruta DELETE en "/api/delete/id" para eliminar datos de usuario por ID
-@app.delete("/api/delete/{id}", summary="Delete User by ID", status_code=HTTP_204_NO_CONTENT)
+@app.delete("/api/delete/{id}", summary="Delete User by ID", dependencies=[Depends(get_current_active_user)], status_code=HTTP_204_NO_CONTENT)
 def delete(id: str):
     try:
          # Intentamos eliminar los datos del usuario con el ID proporcionado
@@ -109,5 +115,4 @@ def delete(id: str):
     except Exception as e:
         # Si ocurre una excepción, lanzamos una HTTPException con código 500 y el detalle del error
         raise HTTPException(status_code=500, detail=str(e))
-
 

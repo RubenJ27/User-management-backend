@@ -36,6 +36,7 @@ Este proyecto es una aplicación para la gestión de usuarios utilizando Python 
    ```sh
    python -m venv venv
    source venv/Scripts/activate  # En Windows
+   .\venv\Scripts\activate # En windows
    source venv/bin/activate      # En Unix o macOS
    ```
 
@@ -62,7 +63,12 @@ Este proyecto es una aplicación para la gestión de usuarios utilizando Python 
    python main.py
    ```
 
+   ```
+   uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+   ```
+
 2. La aplicación se conectará a la base de datos PostgreSQL utilizando las variables de entorno definidas en el archivo [`.env`]
+3. Accede a la documentación de Swagger en tu navegador web en: `http://127.0.0.1:8000/docs`
 
 ## Contribuciones
 

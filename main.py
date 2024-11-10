@@ -1,5 +1,7 @@
 # Importamos FastAPI y HTTPException de la librería fastapi
-from fastapi import Depends, FastAPI, HTTPException, logger, Response, status
+from typing import Optional
+from database.database import get_db
+from fastapi import Depends, FastAPI, HTTPException, logger, Response, Query
 from starlette.status import HTTP_204_NO_CONTENT, HTTP_200_OK, HTTP_201_CREATED
 
 from auth.auth_routes import router as auth_router
@@ -116,3 +118,29 @@ def delete(id: str):
         # Si ocurre una excepción, lanzamos una HTTPException con código 500 y el detalle del error
         raise HTTPException(status_code=500, detail=str(e))
 
+# Definimos una ruta GET en "/api/users/search" para buscar usuarios por nombre y paginados
+@app.get("/api/users/search/", summary="Search Users", dependencies=[Depends(get_current_active_user)], status_code=HTTP_200_OK)
+async def search_users(
+    name: str = Query(..., description="Name to search for"),
+    page: int = Query(default=1, description="Page number"),
+    page_size: int = Query(default=10, description="Number of items per page"),
+):
+    try:
+        offset = (page - 1) * page_size
+        users = conn.search_users(name, offset, page_size)
+
+        items = []
+        for user in users:
+            dictionary = {
+                "id": user[0],
+                "name": user[1],
+                "lastname": user[2],
+                "age": user[3],
+                "email": user[4]
+            }
+            items.append(dictionary)
+
+        return {"page": page, "page_size": page_size, "users": items}
+    except Exception as e:
+        logger.error(f"Error al buscar los usuarios: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

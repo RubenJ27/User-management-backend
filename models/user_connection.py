@@ -1,4 +1,5 @@
 # Importamos el módulo psycopg2 para manejar la conexión a la base de datos PostgreSQL
+from typing import Optional
 import psycopg2
 # Importamos load_dotenv para cargar las variables de entorno desde el archivo .env
 from dotenv import load_dotenv
@@ -117,3 +118,24 @@ class UserConnection:
     def __del__(self):
         # Cerramos la conexión a la base de datos cuando el objeto es destruido
         self.conn.close()
+
+    # Método para buscar usuarios en la base de datos por nombre
+    def search_users(self, name: str, offset: int, limit: int):
+        if self.conn is None:
+            raise Exception("No database connection")
+        query = "SELECT * FROM users WHERE 1=1"
+        params = []
+
+        if name:
+            query += " AND name ILIKE %s"  # Asegúrate de usar el nombre correcto de la columna
+            params.append(f"%{name}%")
+
+        query += " LIMIT %s OFFSET %s"
+        params.extend([limit, offset])
+
+        with self.conn.cursor() as cur:
+            cur.execute(query, params)
+            users = cur.fetchall()
+
+        return users
+    

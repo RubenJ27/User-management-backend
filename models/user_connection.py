@@ -21,11 +21,11 @@ class UserConnection:
     def __init__(self):
         try:
             # Obtenemos las variables de entorno
-            dbname = os.getenv("DB_NAME")
-            user = os.getenv("DB_USER")
-            host = os.getenv("DB_HOST")
-            password = os.getenv("DB_PASSWORD")
-            port = os.getenv("DB_PORT")
+            dbname = os.getenv("PGDATABASE")
+            user = os.getenv("PGUSER")
+            host = os.getenv("PGHOST")
+            password = os.getenv("PGPASSWORD")
+            port = os.getenv("PGPORT")
             
             # Intentamos establecer una conexión a la base de datos PostgreSQL
             self.conn = psycopg2.connect(

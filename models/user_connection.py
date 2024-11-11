@@ -21,7 +21,7 @@ class UserConnection:
     def __init__(self):
         try:
             # Obtenemos las variables de entorno
-            dbname = os.getenv("PGDATABASE")
+            dbname = os.getenv("PGNAMEDATABASE")
             user = os.getenv("PGUSER")
             host = os.getenv("PGHOST")
             password = os.getenv("PGPASSWORD")
